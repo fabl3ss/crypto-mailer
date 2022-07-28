@@ -6,7 +6,7 @@
 * By convention, this project does not use a database, so email data is stored in a csv file
 * The data in this file is stored in order, which allows you to use **binary search** to find duplicates
 * The project is written to work out of the box, so all the credentials are public, and some of them are **trial** \
-Therefore, if the API stopped working for some reason, first try to set up the [config](https://maxym.gitbook.io/crypto-mailer/)
+Therefore, if the API stopped working for some reason, first try to set up the [config](https://maxym.gitbook.io/crypto-mailer/reference/setup-config)
 
 \
 ``` УКР ```
@@ -15,4 +15,4 @@ Therefore, if the API stopped working for some reason, first try to set up the [
 * За умовою завдання, не потрібно було підключати бд, тому емейли зберігаються у csv файлі
 * Дані в цьому csv файлі зберігаються впорядковано, тому використовується **бінарний пошук** для пошуку дублікатів
 * Проєкт написано так, щоб він працював "з коробки", тому деякі облікові дані з **пробним періодом** \
-Якщо API перестав працювати як належне, можливо варто переналаштувати [конфіг](https://maxym.gitbook.io/crypto-mailer/)
+Якщо API перестав працювати як належне, можливо варто переналаштувати [конфіг](https://maxym.gitbook.io/crypto-mailer/reference/setup-config)
