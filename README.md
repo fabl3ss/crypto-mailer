@@ -32,6 +32,14 @@ Therefore, if the API stopped working for some reason, first try to set up the [
   localhost:8080/sendEmails --> Send the newsletter to all subscribed emails
 ```
 
+## Linter
+[golangci-lint](https://github.com/golangci/golangci-lint) was used as a linter
+```bash
+  make lint      --> to execute all configured linters
+  make lint-fast --> to execute only fast linters
+```
+
+
 ## Project structure
 ``` bash
 .
