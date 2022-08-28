@@ -16,5 +16,5 @@ type BannerModifications struct {
 }
 
 type ImageRepository interface {
-	GetCryptoBannerUrl(bannerUrl, bearer string, chart []float64, rate *CurrencyRate) (string, error)
+	GetCryptoBannerUrl(chart []float64, rate *CurrencyRate) (string, error)
 }

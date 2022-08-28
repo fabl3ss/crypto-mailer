@@ -5,24 +5,31 @@ import (
 	"genesis_test_case/src/pkg/delivery/http/middleware"
 	"genesis_test_case/src/pkg/repository"
 	"genesis_test_case/src/pkg/usecase"
+	"genesis_test_case/src/platform/gmail_api"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-var (
-	MailingHandler *http.MailingHandler
-)
+func initHandler() (*http.MailingHandler, error) {
+	gmailService, err := gmail_api.GetGmailService()
+	if err != nil {
+		return nil, err
+	}
+	repos := repository.NewRepositories(gmailService)
+	usecases := usecase.NewUsecases(repos)
+	handler := http.NewMailingHandler(usecases)
+
+	return handler, nil
+}
 
 func InitRoutes(app *fiber.App) error {
-	repos, err := repository.NewRepositories()
+	handler, err := initHandler()
 	if err != nil {
 		return err
 	}
 
-	usecases := usecase.NewUsecases(repos)
-	MailingHandler = http.NewMailingHandler(usecases)
-
 	middleware.FiberMiddleware(app)
-	PublicRoutes(app)
+	InitPublicRoutes(app, handler)
+
 	return nil
 }

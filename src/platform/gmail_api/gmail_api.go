@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"genesis_test_case/src/pkg/types/filemodes"
 	"log"
 	"net/http"
 	"os"
@@ -16,7 +16,6 @@ import (
 	"google.golang.org/api/option"
 )
 
-// Retrieve a token, saves the token, then returns the generated client
 func getClient(config *oauth2.Config) *http.Client {
 	tokFile := os.Getenv("GMAIL_TOKEN_PATH")
 	tok, err := tokenFromFile(tokFile)
@@ -26,7 +25,6 @@ func getClient(config *oauth2.Config) *http.Client {
 	return config.Client(context.Background(), tok)
 }
 
-// Request a token from the web, then returns the retrieved token
 func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	fmt.Printf("Go to the following link in your browser then type the "+
@@ -44,27 +42,37 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	return tok
 }
 
-// Retrieves a token from a local file
 func tokenFromFile(file string) (*oauth2.Token, error) {
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+
+	defer func() {
+		err = f.Close()
+	}()
+
 	tok := &oauth2.Token{}
 	err = json.NewDecoder(f).Decode(tok)
 	return tok, err
 }
 
-// Saves a token to a file path
 func saveToken(path string, token *oauth2.Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	tokenFileMode := os.ModeDir | filemodes.OS_USER_RW
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, tokenFileMode)
 	if err != nil {
 		log.Fatalf("Unable to cache oauth token: %v", err)
 	}
-	defer f.Close()
-	json.NewEncoder(f).Encode(token)
+	defer func() {
+		if err = f.Close(); err != nil {
+			log.Fatalf("Unable to close oauth token file")
+		}
+	}()
+	err = json.NewEncoder(f).Encode(token)
+	if err != nil {
+		log.Fatalf("Unable to encode oauth token")
+	}
 }
 
 func UpdateService(credentialsPath string, tokenPath string) (*gmail.Service, error) {
@@ -74,6 +82,9 @@ func UpdateService(credentialsPath string, tokenPath string) (*gmail.Service, er
 	}
 
 	tok, err := tokenFromFile(tokenPath)
+	if err != nil {
+		return nil, err
+	}
 	tokenSource := config.TokenSource(context.TODO(), tok)
 	newToken, err := tokenSource.Token()
 	if err != nil {
@@ -87,7 +98,7 @@ func UpdateService(credentialsPath string, tokenPath string) (*gmail.Service, er
 }
 
 func getClientFromFile(path string) (*oauth2.Config, error) {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to read client secret file")
 	}

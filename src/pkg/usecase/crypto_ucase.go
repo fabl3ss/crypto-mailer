@@ -1,10 +1,11 @@
 package usecase
 
 import (
+	"strconv"
+
 	"genesis_test_case/src/config"
 	"genesis_test_case/src/pkg/domain"
 	"genesis_test_case/src/pkg/repository"
-	"strconv"
 )
 
 type cryptoUsecase struct {

@@ -1,15 +1,14 @@
 package repository
 
 import (
-	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"genesis_test_case/src/config"
 	"genesis_test_case/src/pkg/domain"
-	"io/ioutil"
-	"net/http"
-	"strings"
-
-	"github.com/pkg/errors"
+	"genesis_test_case/src/pkg/utils"
 )
 
 type cryptoRepository struct{}
@@ -18,7 +17,9 @@ func NewCryptoRepository() domain.CryptoRepository {
 	return &cryptoRepository{}
 }
 
-func (c *cryptoRepository) GetCandles(cfg *config.Config, candleProps *domain.CandleProps) ([][]float64, error) {
+func (c *cryptoRepository) GetCandles(candleProps *domain.CandleProps) ([][]float64, error) {
+	cfg := config.Get()
+	var candles [][]float64
 	url := fmt.Sprintf(
 		cfg.CryptoApiCandlesUrl,
 		candleProps.Base,
@@ -27,22 +28,11 @@ func (c *cryptoRepository) GetCandles(cfg *config.Config, candleProps *domain.Ca
 		candleProps.End,
 	)
 
-	resp, err := http.Get(url)
+	err := utils.GetAndParseBody(url, &candles)
 	if err != nil {
-		return nil, errors.Wrap(err, "can't make http request")
+		return nil, err
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't read response body")
-	}
-
-	var candles [][]float64
-
-	err = json.Unmarshal(body, &candles)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't unmarshal JSON")
-	}
 	return candles, nil
 }
 
@@ -53,25 +43,48 @@ func (c *cryptoRepository) GetCurrencyRate(base string, quoted string) (*domain.
 		base,
 		quoted,
 	)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't make http request")
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't read response body")
-	}
-
-	data := struct {
+	rate := struct {
 		Rate domain.CurrencyRate `json:"data"`
 	}{}
 
-	if err := json.Unmarshal(body, &data); err != nil {
-		return nil, errors.Wrap(err, "can't unmarshal JSON")
+	err := utils.GetAndParseBody(url, &rate)
+	if err != nil {
+		return nil, err
+	}
+	rate.Rate.Price = strings.Split(rate.Rate.Price, ".")[0]
+
+	return &rate.Rate, nil
+}
+
+func (c *cryptoRepository) GetWeekChart() ([]float64, error) {
+	var averageCandles []float64
+	weekCandles, err := c.getWeekCandles()
+	if err != nil {
+		return nil, err
 	}
 
-	data.Rate.Price = strings.Split(data.Rate.Price, ".")[0]
-	return &data.Rate, nil
+	for i := len(weekCandles) - 1; i >= 0; i-- {
+		// [i][3] -> opening price (first trade) in the bucket interval
+		averageCandles = append(averageCandles, weekCandles[i][3])
+	}
+
+	return averageCandles, nil
+}
+
+func (c *cryptoRepository) getWeekCandles() ([][]float64, error) {
+	cfg := config.Get()
+	nowUtc := time.Now().UTC()
+	weekCandlesProps := &domain.CandleProps{
+		Base:        cfg.BaseCurrency,
+		Granularity: strconv.Itoa(int(time.Hour.Seconds())),
+		Start:       nowUtc.AddDate(0, 0, -7).Format(time.RFC3339),
+		End:         nowUtc.Format(time.RFC3339),
+	}
+
+	candles, err := c.GetCandles(weekCandlesProps)
+	if err != nil {
+		return nil, err
+	}
+
+	return candles, nil
 }

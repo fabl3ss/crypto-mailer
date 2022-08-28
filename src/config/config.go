@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	ServerUrl           string
+	ServerURL           string
 	ServerReadTimeout   string
 	BaseCurrency        string
 	QuoteCurrency       string
@@ -23,7 +23,7 @@ var (
 func Get() *Config {
 	once.Do(func() {
 		cfg = Config{
-			ServerUrl:           os.Getenv("SERVER_URL"),
+			ServerURL:           os.Getenv("SERVER_URL"),
 			ServerReadTimeout:   os.Getenv("SERVER_READ_TIMEOUT"),
 			CryptoApiFormatUrl:  os.Getenv("CRYPTO_API_FORMAT_URL"),
 			CryptoApiCandlesUrl: os.Getenv("CRYPTO_API_CANDLES_URL"),

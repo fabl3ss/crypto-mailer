@@ -1,14 +1,13 @@
 package routes
 
 import (
+	"genesis_test_case/src/pkg/delivery/http"
+
 	"github.com/gofiber/fiber/v2"
 )
 
-func PublicRoutes(a *fiber.App) {
-	// Routes for GET method:
-	a.Get("/rate", MailingHandler.GetCurrencyRate)
-
-	// Routes for POST method:
-	a.Post("/sendEmails", MailingHandler.SendRate)
-	a.Post("/subscribe", MailingHandler.Subscribe)
+func InitPublicRoutes(a *fiber.App, handler *http.MailingHandler) {
+	a.Get("/rate", handler.GetCurrencyRate)
+	a.Post("/sendEmails", handler.SendRate)
+	a.Post("/subscribe", handler.Subscribe)
 }

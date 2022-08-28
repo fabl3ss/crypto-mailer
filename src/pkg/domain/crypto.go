@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"genesis_test_case/src/config"
-)
-
 type CurrencyRate struct {
 	Price         string `json:"amount"`
 	BaseCurrency  string `json:"base"`
@@ -22,6 +18,7 @@ type CryptoUsecase interface {
 }
 
 type CryptoRepository interface {
-	GetCandles(cfg *config.Config, candleProps *CandleProps) ([][]float64, error)
+	GetWeekChart() ([]float64, error)
+	GetCandles(candleProps *CandleProps) ([][]float64, error)
 	GetCurrencyRate(base string, quoted string) (*CurrencyRate, error)
 }

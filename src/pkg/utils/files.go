@@ -2,26 +2,61 @@ package utils
 
 import (
 	"encoding/csv"
+	"genesis_test_case/src/pkg/types/filemodes"
 	"io"
 	"os"
-	"sort"
 )
 
-// ExistsInCsv returns sorted slice with
-// inserted toFind if record not exists
-// or nil if record already exists
-func ExistsInCsv(path string, toFind string) ([]string, error) {
+func WriteToCsv(path string, data []string) error {
+	fileMode := os.ModeDir | (filemodes.OS_USER_RW | filemodes.OS_ALL_R)
+	f, err := os.OpenFile(
+		path,
+		os.O_RDWR|os.O_CREATE|os.O_TRUNC,
+		fileMode,
+	)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = f.Close()
+	}()
+	w := csv.NewWriter(f)
+	defer w.Flush()
+
+	for _, v := range data {
+		err := w.Write([]string{v})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func ReadAllFromCsv(path string) ([]string, error) {
+	fileMode := os.ModeDir | (filemodes.OS_USER_RW | filemodes.OS_ALL_R)
 	f, err := os.OpenFile(
 		path,
 		os.O_RDONLY|os.O_CREATE,
-		0644,
+		fileMode,
 	)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() {
+		err = f.Close()
+	}()
 
-	var emails []string
+	content, err := csvFileToSlice(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return content, nil
+}
+
+func csvFileToSlice(f *os.File) ([]string, error) {
+	var data []string
 	csvReader := csv.NewReader(f)
 
 	for {
@@ -32,20 +67,8 @@ func ExistsInCsv(path string, toFind string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		emails = append(emails, record[0])
+		data = append(data, record[0])
 	}
 
-	index := sort.SearchStrings(emails, toFind)
-	if index != len(emails) {
-		if emails[index] == toFind {
-			return nil, nil
-		}
-	}
-
-	// insert into correct position
-	emails = append(emails, "")
-	copy(emails[index+1:], emails[index:])
-	emails[index] = toFind
-
-	return emails, nil
+	return data, nil
 }

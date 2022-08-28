@@ -12,5 +12,9 @@ type MailingUsecase interface {
 }
 
 type MailingRepository interface {
+	GetSubscribed() ([]string, error)
+	GetMessageBody(bannerURL string) (string, error)
 	SendMessage(message *gmail.Message, body string) error
+	InsertNewEmail(emails []string, toInsert string) error
+	SendToSubscribed(messageBody string) ([]string, error)
 }
