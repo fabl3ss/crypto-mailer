@@ -33,7 +33,6 @@ enable = [
     "dupl", # Detect duplicate code
     "gomnd", # Magic number detection
     "nakedret", # Detect naked returns
-    "tparallel", # Detects inappropriate use of t.Parallel()
 ]
 
 [issues]
