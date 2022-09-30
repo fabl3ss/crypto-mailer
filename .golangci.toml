@@ -31,7 +31,6 @@ enable = [
     "goerr113", # Enforce standard error handling practices
     "depguard", # Forbid certain package imports
     "dupl", # Detect duplicate code
-    "errchkjson", # some JSON-specific checks
     "gomnd", # Magic number detection
     "nakedret", # Detect naked returns
     "tparallel", # Detects inappropriate use of t.Parallel()
